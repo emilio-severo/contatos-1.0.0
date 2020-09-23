@@ -1,6 +1,6 @@
 function autorizacao(req, res, next){
     if(req.session.usuario != undefined)
-        next();
+        next(); //Segue o fluxo.
     else
         res.redirect("/");
 };
