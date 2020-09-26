@@ -16,7 +16,7 @@ const app = express();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
-app.use(session({ secret: "Um%55kjds", resave: true, saveUninitialized: true}));
+app.use(session({ secret: "Um%55kjds", resave: true, saveUninitialized: true }));
 
 conexao.authenticate();
 
@@ -24,45 +24,71 @@ conexao.authenticate();
 *   Tratamento da requisição localhost:3000/
 *   Mostra a página de autenticação do usuário.
 */
+
 app.get("/", function (req, res) {
-    res.render("login", {mensagem: ""});
+    
+
+    Racas
+    .findAll()  //select * from categorias
+    .then(function(categorias){       //Quando terminar o select 
+        Usuarios.findAll()
+            .then(function(usuarios){
+                res.render("teste", {categorias: categorias, usuarios: usuarios})
+            })
+    })
+    
+
+    /*
+    let contatos = Contatos
+    .findAll()
+    .then(function(contatos){
+        return contatos
+    })
+    .then(function(contatos){
+        return contatos
+    })
+    
+    console.log("\n" +contatos)
+    */ 
+
+    //res.render("login", { mensagem: "" });
 });
 
-app.get("/index", autorizacao, function(req, res){
-    res.render("index", {usuario: req.session.usuario.nome});
+app.get("/index", autorizacao, function (req, res) {
+    res.render("index", { usuario: req.session.usuario.nome });
 })
 
 /*  
 *   Rotina de autenticação do usuário.
 */
-app.post("/login", function(req, res){
+app.post("/login", function (req, res) {
     Usuarios
-        .findOne({ where: { email: req.body.login }})
-        .then(function(usuario){
-            if(usuario != undefined) {
-                if(bcrypt.compareSync(req.body.senha, usuario.senha)) {
-                    req.session.usuario = {id: usuario.id, nome: usuario.nome, email: usuario.email};
+        .findOne({ where: { email: req.body.login } })
+        .then(function (usuario) {
+            if (usuario != undefined) {
+                if (bcrypt.compareSync(req.body.senha, usuario.senha)) {
+                    req.session.usuario = { id: usuario.id, nome: usuario.nome, email: usuario.email };
                     res.redirect("/index");
                 }
-                else{
-                    res.render("login", {mensagem: "Usuário ou senha inválidos."});
+                else {
+                    res.render("login", { mensagem: "Usuário ou senha inválidos." });
                 }
             }
             else
-                res.render("login", {mensagem: "Usuário ou senha inválidos."});
+                res.render("login", { mensagem: "Usuário ou senha inválidos." });
         });
 });
 
-app.get("/logout", function(req, res){
+app.get("/logout", function (req, res) {
     req.session.usuario = undefined;
     res.redirect("/");
 });
 
-app.get("/usuarios/novo", function(req, res){
+app.get("/usuarios/novo", function (req, res) {
     res.render("usuarios");
 });
 
-app.post("/usuarios/salvar", function(req, res){
+app.post("/usuarios/salvar", function (req, res) {
     let nome = req.body.nome;
     let email = req.body.login;
     let senha = req.body.senha;
@@ -71,9 +97,9 @@ app.post("/usuarios/salvar", function(req, res){
     let senhaCripto = bcrypt.hashSync(senha, salt);
 
     Usuarios
-        .create({ nome: nome, email: email, senha: senhaCripto})
+        .create({ nome: nome, email: email, senha: senhaCripto })
         .then(
-            res.render("login", {mensagem: "Usuário cadastrado."})
+            res.render("login", { mensagem: "Usuário cadastrado." })
         );
 });
 
@@ -88,11 +114,13 @@ app.get("/categorias/lista/:mensagem?", autorizacao, function (req, res) {
     Categorias
         .findAll({ order: ["descricao"] }) //findAll() busca todos os registros, order define o campo de ordenação.
         .then(function (categorias) {      //se forem retornados registros de categorias, estas são apresentadas na página.
-            if(req.params.mensagem)
-                res.render("categorias/categorias", { categorias: categorias,
-                    mensagem: "Não foi possível, pois já há um contato relacionado a esta categoria."});
+            if (req.params.mensagem)
+                res.render("categorias/categorias", {
+                    categorias: categorias,
+                    mensagem: "Não foi possível, pois já há um contato relacionado a esta categoria."
+                });
             else
-                res.render("categorias/categorias", { categorias: categorias, mensagem: ""});
+                res.render("categorias/categorias", { categorias: categorias, mensagem: "" });
         });
 
 });
@@ -111,7 +139,7 @@ app.post("/categorias/salvar", autorizacao, function (req, res) {
         .create({ descricao: descricao })
         .then(
             res.render("categorias/novo", { mensagem: "Categoria incluída." }
-        ));
+            ));
 });
 
 /*
@@ -153,8 +181,8 @@ app.get("/categorias/excluir/:id", autorizacao, function (req, res) {
         .then(function () {
             res.redirect("/categorias/lista");
         })
-        .catch(function(erro){
-            if(erro instanceof Sequelize.ForeignKeyConstraintError) {
+        .catch(function (erro) {
+            if (erro instanceof Sequelize.ForeignKeyConstraintError) {
                 res.redirect("/categorias/lista/erro");
             }
         });
@@ -179,10 +207,16 @@ app.get("/contatos", autorizacao, function (req, res) {
 *   Quando o usuário clica no botão novo contato é disparada a requisição /contatos/novo
 *   então é renderizada a página para inclusão de um novo contato.
 */
+
 app.get("/contatos/novo/:mensagem?", autorizacao, function (req, res) {
+    
     Categorias
         .findAll({ order: ["descricao"] })
         .then(function (categorias) {
+            //contatos.forEach(function(contato){
+            //    console.log("\n\n" + contato.nome);    
+            //})
+
             if (req.params.mensagem)
                 res.render("contatos/novo", { mensagem: "Contato incluído.", categorias: categorias });
             else
